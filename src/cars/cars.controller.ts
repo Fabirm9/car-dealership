@@ -1,45 +1,46 @@
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CarsService } from './cars.service';
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { CreateCarDto } from './dto/create-car.dto';
+import { UpdateCarDto } from './dto/update-car.dto';
 
 @Controller('cars')
+//@UsePipes( ValidationPipe )
 export class CarsController {
+  
+  constructor(
+    private readonly carsService: CarsService
+  ) {}
 
-    constructor(private readonly carsService: CarsService ){
+  @Get()
+  getAllCars() {
+    return this.carsService.findAll()
+  }
 
-    }
-    
-    @Get()
-    getAllCars(){
-        return this.carsService.getAllCars();
-    }
+  @Get(':id')
+  getCarById( @Param('id' , new ParseUUIDPipe({  version:'4'}) ) id: string ) {
 
-    @Get(':id')
-    getCarById( @Param('id', ParseIntPipe) id :number){
+    return this.carsService.findOneById( id );
+  }
 
-        return this.carsService.getCarById(id);
-    }
+  @Post()
+  createNewCar( @Body() createCarDto: CreateCarDto ) {
+    const newCar = this.carsService.addCar(createCarDto)
+    if(newCar === null)
+      return `Problem with add car`
 
-    @Post()
-    createNewCar( @Body() body: any){
-        return body;
-    }
+    return newCar;
+  }
 
-    @Patch(':id')
-    updateCar(
-        @Param('id', ParseIntPipe) id :number,
-        @Body() body: any){
-        return 
-        {
-            id
-        };
-    }
+  @Patch(':id')
+  updateCar( 
+    @Param('id', ParseUUIDPipe) id: string, 
+    @Body() updateCarDto: UpdateCarDto ) 
+  {
+    return this.carsService.updateCar(id, updateCarDto);
+  }
 
-
-    @Delete(':id')
-    deleteCarById(@Param('id', ParseIntPipe) id :number){
-        return {
-            method: 'DELETE',
-            id
-        };
-    }
+  @Delete(':id')
+  deleteCarById( @Param('id', ParseUUIDPipe ) id: string ) {
+    return this.carsService.deleteCar(id);
+  }
 }
